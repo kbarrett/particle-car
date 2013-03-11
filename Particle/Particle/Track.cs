@@ -17,7 +17,7 @@ namespace Particle
     {
         TrackPoint start;
 
-        const int checkpointlength = 95;
+        const int checkpointlength = 100;
         const int trackwidth = 200;
 
         public Track()
@@ -25,13 +25,22 @@ namespace Particle
             int radius = 200;
             Vector2 centre = new Vector2(300, 300);
 
-            start = new TrackPoint(centre + new Vector2(0, radius), 180, checkpointlength, trackwidth);
+            start = new TrackPoint(centre + getVector(radius, 0), 0, checkpointlength, trackwidth);
             TrackPoint temp = start;
-            int increment = 4;
+            int increment = 15;
             for (int i = increment; i < 360; i += increment)
             {
-                double x = 0, y = 0;
-                if (i <= 180)
+                temp.next = new TrackPoint(centre + getVector(radius, i), -i, checkpointlength, trackwidth);
+
+                temp = temp.next;
+            }
+            temp.next = start;
+        }
+
+        private Vector2 getVector(int radius, int i)
+        {
+            double x = 0, y = 0;
+            if (i <= 180)
                 {
                     if (i <= 90)
                     {
@@ -57,10 +66,7 @@ namespace Particle
                         y = - radius * Math.Sin(toRad(90 - i));
                     }
                 }
-                temp.next = new TrackPoint(centre + new Vector2((float)x, (float)y), -i, checkpointlength, trackwidth);
-                temp = temp.next;
-            }
-            temp.next = start;
+            return new Vector2((float)x, (float)y);
         }
 
         private double toRad(float degree)

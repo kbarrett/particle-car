@@ -27,9 +27,11 @@ namespace Particle
 
         private void resetParticles()
         {
+            float speed = 2;
             foreach(TrackPoint tp in track)
             {
-                particles.Add(new Particle(tp.loc.X, tp.loc.Y, track));
+                particles.Add(new Particle(tp.loc.X, tp.loc.Y, track, speed));
+                speed += 0.3f;
             }
         }
 
