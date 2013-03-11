@@ -16,7 +16,7 @@ namespace Particle
     class TrackPoint
     {
         static int current = 0;
-        int identifier;
+        public int identifier;
         public TrackPoint next;
         public Vector2 loc;
         private float orientation;

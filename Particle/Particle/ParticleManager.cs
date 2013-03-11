@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
@@ -28,9 +29,10 @@ namespace Particle
         private void resetParticles()
         {
             float speed = 2;
-            foreach(TrackPoint tp in track)
+            for (int i = 0; i < 200; ++i)
             {
-                particles.Add(new Particle(tp.loc.X, tp.loc.Y, track, speed));
+                particles.Add(new Particle(track.start.loc.X, 300 - i, track, speed));
+                //particles.Add(new Particle(track.start.next.next.next.next.next.next.loc.X, 200 - i, track, speed));
                 speed += 0.3f;
             }
         }
@@ -46,13 +48,14 @@ namespace Particle
         public void Update(Track track)
         {
             CheckParticlePosition(track);
-		    foreach(Particle p in particles)
-		    {
-			    p.Move(track, particles);
-		    }
-            foreach (Particle p in particles)
+
+            foreach (Particle particle in particles)
             {
-                p.Update(track);
+                particle.Move(track, particles);
+            }
+            foreach (Particle particle in particles)
+            {
+                particle.Update(track);
             }
 	    }
 

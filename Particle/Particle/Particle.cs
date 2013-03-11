@@ -49,6 +49,11 @@ namespace Particle
             return speed;
         }
 
+        public TrackPoint getTrackPoint()
+        {
+            return trackPoint;
+        }
+
         public void Move(Track track, List<Particle> list)
         {
             Vector2 nextLoc = trackPoint.next.loc;
@@ -85,7 +90,7 @@ namespace Particle
                 {
                     continue;
                 }
-                if (Math.Abs(p.loc.X - loc.X) < p.getSpeed() && Math.Abs(p.loc.Y - this.loc.Y) < p.getSpeed())
+                if (Math.Abs(p.loc.X - loc.X) < p.getSpeed() && Math.Abs(p.loc.Y - this.loc.Y) < p.getSpeed() && p.getTrackPoint().identifier > trackPoint.identifier)
                 {
                     if (random.NextDouble() > confidence)
                     {

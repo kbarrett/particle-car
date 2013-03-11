@@ -15,10 +15,10 @@ namespace Particle
 {
     class Track
     {
-        TrackPoint start;
+        public TrackPoint start;
 
         const int checkpointlength = 100;
-        const int trackwidth = 200;
+        const int trackwidth = 400;
 
         public Track()
         {
