@@ -15,31 +15,55 @@ namespace Particle
 {
     class TrackPoint
     {
-        static int current = 0;
-        public int identifier;
+        public List<Particle> occupying = new List<Particle>();
         public TrackPoint next;
         public Vector2 loc;
         private float orientation;
-        Rectangle rect;
+        private int maxThroughput;
+        private int defaultThroughput = 3;
 
-        public TrackPoint(Vector2 loc, float orientation, int width, int height)
+        public TrackPoint(Vector2 loc, float orientation, int maxThroughput = 3)
         {
             this.orientation = (float)(Math.PI * orientation / 180);
             this.loc = loc;
-            rect = new Rectangle((int)(loc.X - width / 2.0), (int)(loc.Y - height / 2.0), width, height);
-
-            identifier = current++;
+            this.maxThroughput = maxThroughput;
         }
 
         public float getOrientation()
         {
             return orientation;
         }
-
-        public bool contains(Vector2 p)
+        public void setDefaultThroughput(int maxThroughput)
         {
-            Vector2 rotatedP = rotate(p);
-            return rect.Contains(new Point((int)rotatedP.X, (int)rotatedP.Y)) ;
+            defaultThroughput = maxThroughput;
+            this.maxThroughput = maxThroughput;
+        }
+        public void setThroughput(int throughput)
+        {
+            this.maxThroughput = throughput;
+        }
+        public void resetThroughput()
+        {
+            this.maxThroughput = defaultThroughput;
+        }
+
+        public bool addParticle(Particle p)
+        {
+            if (occupying.Count == 0)
+            {
+                occupying.Add(p);
+                return true;
+            }
+            if (occupying.Count < maxThroughput && p.speed >= occupying[occupying.Count - 1].speed)
+            {
+                occupying.Add(p);
+                return true;
+            }
+            return false;
+        }
+        public void removeParticle(Particle p)
+        {
+            occupying.Remove(p);
         }
 
         private Vector2 rotate(Vector2 point, int clock = -1)
@@ -65,13 +89,16 @@ namespace Particle
                     return;
                 }
             }
-
-            spriteBatch.Draw(Game1.background, rotate(new Vector2(rect.Left, rect.Bottom), 1), Color.Red);
-            spriteBatch.Draw(Game1.background, rotate(new Vector2(rect.Right, rect.Bottom), 1), Color.Blue);
-            spriteBatch.Draw(Game1.background, rotate(new Vector2(rect.Left, rect.Top), 1), Color.Yellow);
-            spriteBatch.Draw(Game1.background, rotate(new Vector2(rect.Right, rect.Top), 1), Color.Green);
-            spriteBatch.Draw(Game1.background, loc, Color.White);
             next.Draw(spriteBatch, tp);
+
+            foreach (Particle p in occupying)
+            {
+                Vector2 shift = new Vector2(0, 1);
+                shift.Normalize();
+                shift *= -10 * occupying.IndexOf(p);
+                Color colour = maxThroughput < 3 ? Color.Red : Color.IndianRed;
+                p.Draw(spriteBatch, rotate(loc + shift, 1), colour);
+            }
 
         }
     }

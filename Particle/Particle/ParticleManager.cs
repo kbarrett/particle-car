@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
@@ -20,70 +19,40 @@ namespace Particle
         Track track;
 
         public ParticleManager(Track track)
-	    {
-		    particles = new List<Particle>();
+        {
+            particles = new List<Particle>();
             this.track = track;
-		    resetParticles();
-	    }
+            resetParticles();
+        }
 
         private void resetParticles()
         {
-            float speed = 2;
-            for (int i = 0; i < 200; ++i)
+            int trackId = 0;
+            int speed = 1;
+            foreach (TrackPoint tp in track)
             {
-                particles.Add(new Particle(track.start.loc.X, 300 - i, track, speed));
-                //particles.Add(new Particle(track.start.next.next.next.next.next.next.loc.X, 200 - i, track, speed));
-                speed += 0.3f;
+                if (trackId % 2 == 0)
+                {
+                    ++speed;
+                }
+                int number = (trackId % 4 == 0) ? 0 : 1;
+                for (int i = 0; i < number; ++i)
+                {
+                    particles.Add(new Particle(tp, speed));
+                }
+                ++trackId;
+                if (trackId > 90)
+                {
+                    return;
+                }
             }
         }
 
-        public void Draw(SpriteBatch spriteBatch)
-	    {
-		    foreach(Particle p in particles)
-		    {
-                p.Draw(spriteBatch);
-		    }
-	    }
-
         public void Update(Track track)
         {
-            CheckParticlePosition(track);
-
-            foreach (Particle particle in particles)
+            foreach (Particle p in particles)
             {
-                particle.Move(track, particles);
-            }
-            foreach (Particle particle in particles)
-            {
-                particle.Update(track);
-            }
-	    }
-
-        private void CheckParticlePosition(Track track)
-        {
-            List<Particle> throwList = new List<Particle>();
-            
-            foreach(Particle p in particles)
-            {
-                if(p.trackPoint == null)
-                {
-                    throwList.Add(p);
-                    continue;
-                }
-                foreach(Particle q in particles)
-                {
-                    if (p == q) { continue; }
-                    if (p.Collision(q))
-                    {
-                        throwList.Add(p);
-                        throwList.Add(q);
-                    }
-                }
-            }
-
-            foreach (Particle p in throwList)
-            {
-                particles.Remove(p);
+                p.Move(track);
             }
         }
     }

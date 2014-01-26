@@ -15,117 +15,52 @@ namespace Particle
 {
     class Particle
     {
-        Vector2 loc;
-
-        private float speed;
-
-        private float lastTurn = 0;
-        private float maxTurn = (float)(Math.PI / 3.0);
+        public int maxSpeed;
+        public int speed;
+        private int turns = -1;
+        private static int maxTurns = 5;
 
         public TrackPoint trackPoint;
-
-        private static Random random = new Random();
-        private float confidence;
 	
-	    public Particle(float x, float y, Track track, float speed = 3, float confidence = 0.5f)
+	    public Particle(TrackPoint startingPoint, int speed = 1)
 	    {
-            loc = new Vector2(x, y);
-            this.speed = speed;
-            this.confidence = confidence;
-            trackPoint = track.getTrackPosition(loc);
-            if (trackPoint != null)
-            {
-                lastTurn = (float)(Math.PI / 2.0) + trackPoint.getOrientation();
-            }
+            this.maxSpeed = speed;
+            this.speed = 1;
+            startingPoint.addParticle(this);
+            this.trackPoint = startingPoint;
+            maxTurns = Math.Max(speed, maxTurns);
 	    }
 
-        public Vector2 getLocation()
+        public void Move(Track track)
         {
-            return loc;
-        }
-
-        public float getSpeed()
-        {
-            return speed;
-        }
-
-        public TrackPoint getTrackPoint()
-        {
-            return trackPoint;
-        }
-
-        public void Move(Track track, List<Particle> list)
-        {
-            Vector2 nextLoc = trackPoint.next.loc;
-            while(track.isOnTrack(nextLoc))
+            if (turns == speed || turns == -1)
             {
-                Vector2 col = findCollisionPoint(nextLoc);
-                if (causesCollisions(list, col))
+                TrackPoint nextLoc = trackPoint.next;
+                if (nextLoc.addParticle(this))
                 {
-                    float size = nextLoc.Length();
-                    double angle = (Math.PI / 2.0) - trackPoint.next.getOrientation();
-                    float x = (float)((size + speed) * Math.Sin(angle));
-                    float y = (float)((size + speed) * Math.Cos(angle));
-                    nextLoc.X = x;
-                    nextLoc.Y = y;
+                    trackPoint.removeParticle(this);
+                    trackPoint = nextLoc;
+                    if (speed < maxSpeed)
+                    {
+                        ++speed;
+                    }
                 }
                 else
                 {
-                    loc = col;
-                    return;
+                    speed = Math.Max(0, speed - 1);
                 }
+                turns = maxTurns;
             }
-        }
-
-        public void Update(Track track)
-        {
-            trackPoint = track.getTrackPosition(loc, trackPoint);
-        }
-
-        private bool causesCollisions(List<Particle> list, Vector2 loc)
-        {
-            foreach (Particle p in list)
+            else
             {
-                if (p == this)
-                {
-                    continue;
-                }
-                if (Math.Abs(p.loc.X - loc.X) < p.getSpeed() && Math.Abs(p.loc.Y - this.loc.Y) < p.getSpeed() && p.getTrackPoint().identifier > trackPoint.identifier)
-                {
-                    if (random.NextDouble() > confidence)
-                    {
-                        return true;
-                    }
-                }
-
+                --turns;
             }
-            return false;
         }
 
-        private Vector2 findCollisionPoint(Vector2 linePoint1)
-        {
-            return (Vector2.Normalize(linePoint1 - loc) * speed) + loc;
-        }
-
-        private void UpdateOrientation(Vector2 col)
-        {
-            lastTurn = (float)Math.Acos(Vector2.Dot(Vector2.Normalize(col), Vector2.Normalize(loc)));
-        }
-
-	    public void Move(float xMov, float yMov)
+        public void Draw(SpriteBatch spriteBatch, Vector2 location, Color color)
 	    {
-		    loc += new Vector2(xMov, yMov);
+            spriteBatch.Draw(Game1.background, location, color);
 	    }
-
-        public void Draw(SpriteBatch spriteBatch)
-	    {
-		    spriteBatch.Draw(Game1.background, loc, Color.IndianRed);
-	    }
-
-        public bool Collision(Particle p)
-        {
-            return p.getLocation().Equals(getLocation());
-        }
 
     }
 }

@@ -24,7 +24,7 @@ namespace Particle
         {
             graphics = new GraphicsDeviceManager(this);
 
-            graphics.PreferredBackBufferWidth = 600;
+            graphics.PreferredBackBufferWidth = 1200;
             graphics.PreferredBackBufferHeight = 600;
 
             Content.RootDirectory = "Content";
@@ -55,6 +55,7 @@ namespace Particle
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
 
+            track.Update();
             pm.Update(track);
 
             base.Update(gameTime);
@@ -66,7 +67,6 @@ namespace Particle
 
             spriteBatch.Begin();
             track.Draw(spriteBatch);
-            pm.Draw(spriteBatch);
             spriteBatch.End();
 
             base.Draw(gameTime);

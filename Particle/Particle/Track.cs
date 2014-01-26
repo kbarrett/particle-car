@@ -15,58 +15,66 @@ namespace Particle
 {
     class Track
     {
-        public TrackPoint start;
-
-        const int checkpointlength = 100;
-        const int trackwidth = 400;
-
+        int timeRemainingForRestriction = 0;
+        TrackPoint start;
         public Track()
         {
             int radius = 200;
             Vector2 centre = new Vector2(300, 300);
 
-            start = new TrackPoint(centre + getVector(radius, 0), 0, checkpointlength, trackwidth);
+            start = new TrackPoint(centre + new Vector2(0, -radius), 0);
             TrackPoint temp = start;
-            int increment = 15;
-            for (int i = increment; i < 360; i += increment)
+            int increment = 2;
+            int sideLength = 60;
+            int currentSide = 0;
+            int fudgeFactor = 4;
+            for (int i = increment; i <= 360; i += increment)
             {
-                temp.next = new TrackPoint(centre + getVector(radius, i), -i, checkpointlength, trackwidth);
-
+                double x = 0, y = 0;
+                if (i <= 90)
+                {
+                    x = -radius * Math.Sin(toRad(i));
+                    y = -radius * Math.Cos(toRad(i));
+                }
+                else if (i<180)
+                {
+                    x = -radius * Math.Cos(toRad(i - 90));
+                    y = radius * Math.Sin(toRad(i - 90));
+                }
+                else if (i == 180)
+                {
+                    if (currentSide < sideLength)
+                    {
+                        x = fudgeFactor * increment * currentSide;
+                        y = radius;
+                        i -= increment;
+                        ++currentSide;
+                    }
+                }
+                else if (i <= 270)
+                {
+                    x = radius * Math.Sin(toRad(-i)) + fudgeFactor * increment * currentSide;
+                    y = -radius * Math.Cos(toRad(-i));
+                }
+                else if (i < 360)
+                {
+                    x = -radius * Math.Cos(toRad(90 - i)) + fudgeFactor * increment * currentSide;
+                    y = -radius * Math.Sin(toRad(90 - i));
+                }
+                else if (i == 360)
+                {
+                    if (currentSide > 0)
+                    {
+                        x = fudgeFactor * increment * currentSide;
+                        y = -radius;
+                        i -= increment;
+                        --currentSide;
+                    }
+                }
+                temp.next = new TrackPoint(centre + new Vector2((float)x, (float)y), -i);
                 temp = temp.next;
             }
             temp.next = start;
-        }
-
-        private Vector2 getVector(int radius, int i)
-        {
-            double x = 0, y = 0;
-            if (i <= 180)
-                {
-                    if (i <= 90)
-                    {
-                        x = -radius * Math.Sin(toRad(i));
-                        y = -radius * Math.Cos(toRad(i));
-                    }
-                    else
-                    {
-                        x = -radius * Math.Cos(toRad(i - 90));
-                        y = radius * Math.Sin(toRad(i - 90));
-                    }
-                }
-                else
-                {
-                    if (i <= 270)
-                    {
-                        x = radius * Math.Sin(toRad(-i));
-                        y = - radius * Math.Cos(toRad(-i));
-                    }
-                    else
-                    {
-                        x = - radius * Math.Cos(toRad(90 - i));
-                        y = - radius * Math.Sin(toRad(90 - i));
-                    }
-                }
-            return new Vector2((float)x, (float)y);
         }
 
         private double toRad(float degree)
@@ -74,32 +82,45 @@ namespace Particle
             return degree * Math.PI / 180;
         }
 
-        public bool isOnTrack(Vector2 vec, TrackPoint tp = null)
-        {
-            return getTrackPosition(vec, tp) != null;
-        }
-
-        public TrackPoint getTrackPosition(Vector2 vec, TrackPoint tp = null)
-        {
-            if (tp == null) { tp = start; }
-
-            TrackPoint startPoint = tp;
-
-            do
-            {
-                if (tp.contains(vec))
-                {
-                    return tp;
-                }
-                tp = tp.next;
-            }
-            while (tp != startPoint);
-            return null;
-        }
-
         public void Draw(SpriteBatch spriteBatch)
         {
             start.Draw(spriteBatch, start);
+        }
+
+        public void Update() 
+        {
+            if (timeRemainingForRestriction > 0)
+            {
+                --timeRemainingForRestriction;
+                return;
+            }
+            Random random = new Random();
+            if (random.Next(50) == 0)
+            {
+                int startPoint = random.Next(360);
+                int length = random.Next(100);
+                TrackPoint tp = start;
+                for (int i = 0; i < startPoint; ++i)
+                {
+                    tp = tp.next;
+                }
+                for (int i = 0; i < length; ++i)
+                {
+                    tp.setThroughput(1);
+                    tp = tp.next;
+                }
+                timeRemainingForRestriction = random.Next(500);
+            }
+            else
+            {
+                TrackPoint tp = start;
+                do
+                {
+                    tp.resetThroughput();
+                    tp = tp.next;
+                }
+                while (!tp.Equals(start));
+            }
         }
 
         public TPEnumerator GetEnumerator()
